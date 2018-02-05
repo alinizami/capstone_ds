@@ -1,0 +1,114 @@
+rm(list=ls())
+#dt_ngram<-data.table(0)
+library(plyr)
+#install.packages("ANLP")
+library(ANLP)
+library(tokenizers)
+library(slam)
+library(tm)
+library(devtools)
+library(tidytext)
+library(ggplot2)
+library(stringr)
+library(ngram)
+library(quanteda)
+#library(aggregate.table)
+library(data.table)
+library(tidyr)
+library(dplyr)
+
+Counts<-Gram_Tdm$V1
+Text<-Gram_Tdm$`3_word`
+p4<-Gram_Tdm$P4
+
+#####load Files
+###Load 4 gram 
+load(file = "file3_gram_4.rda")
+Four_Gram_Uni<-as.data.table(list(Counts,Text,p4)) 
+colnames(Four_Gram_Uni)<-c("counts","Text","prediction")
+setkey(Four_Gram_Uni,Text)
+
+N_Gram_final<-Four_Gram_Uni
+
+load(file = "file2_gram_4.rda")
+Four_Gram_Uni<-as.data.table(list(Counts,Text,p4)) 
+colnames(Four_Gram_Uni)<-c("counts","Text","prediction")
+setkey(Four_Gram_Uni,Text)
+N_Gram_final<-rbind(N_Gram_final,Four_Gram_Uni)
+setkey(N_Gram_final,Text)
+
+
+load(file = "file1_gram_4.rda")
+Four_Gram_Uni<-as.data.table(list(Counts,Text,p4)) 
+colnames(Four_Gram_Uni)<-c("counts","Text","prediction")
+setkey(Four_Gram_Uni,Text)
+N_Gram_final<-rbind(N_Gram_final,Four_Gram_Uni)
+setkey(N_Gram_final,Text)
+
+
+load(file = "file3_gram_3.rda")
+Four_Gram_Uni<-as.data.table(list(Counts,Text,p4)) 
+colnames(Four_Gram_Uni)<-c("counts","Text","prediction")
+setkey(Four_Gram_Uni,Text)
+N_Gram_final<-rbind(N_Gram_final,Four_Gram_Uni)
+setkey(N_Gram_final,Text)
+
+
+load(file = "file2_gram_3.rda")
+Four_Gram_Uni<-as.data.table(list(Counts,Text,p4)) 
+colnames(Four_Gram_Uni)<-c("counts","Text","prediction")
+setkey(Four_Gram_Uni,Text)
+N_Gram_final<-rbind(N_Gram_final,Four_Gram_Uni)
+setkey(N_Gram_final,Text)
+
+
+load(file = "file1_gram_3.rda")
+Four_Gram_Uni<-as.data.table(list(Counts,Text,p4)) 
+colnames(Four_Gram_Uni)<-c("counts","Text","prediction")
+setkey(Four_Gram_Uni,Text)
+N_Gram_final<-rbind(N_Gram_final,Four_Gram_Uni)
+setkey(N_Gram_final,Text)
+
+
+
+
+load(file = "file3_gram_2.rda")
+Four_Gram_Uni<-as.data.table(list(Counts,Text,p4)) 
+colnames(Four_Gram_Uni)<-c("counts","Text","prediction")
+setkey(Four_Gram_Uni,Text)
+N_Gram_final<-rbind(N_Gram_final,Four_Gram_Uni)
+setkey(N_Gram_final,Text)
+
+
+load(file = "file2_gram_2.rda")
+Four_Gram_Uni<-as.data.table(list(Counts,Text,p4)) 
+colnames(Four_Gram_Uni)<-c("counts","Text","prediction")
+setkey(Four_Gram_Uni,Text)
+N_Gram_final<-rbind(N_Gram_final,Four_Gram_Uni)
+setkey(N_Gram_final,Text)
+
+
+load(file = "file1_gram_2.rda")
+Four_Gram_Uni<-as.data.table(list(Counts,Text,p4)) 
+colnames(Four_Gram_Uni)<-c("counts","Text","prediction")
+setkey(Four_Gram_Uni,Text)
+N_Gram_final<-rbind(N_Gram_final,Four_Gram_Uni)
+setkey(N_Gram_final,Text)
+
+N_Gram_final<-N_Gram_final[ , sum(counts), by = list(Text,prediction)]
+setkey(N_Gram_final,Text)
+
+
+Pred_Word<-N_Gram_final["on the"]
+
+Pred_Word<-Pred_Word[order(Pred_Word$V1,decreasing = TRUE)]
+
+Pred_Word[grep("be",Pred_Word$prediction) ,]
+
+
+##saving file
+Counts<-N_Gram_final$V1
+Text<-N_Gram_final$Text
+p4<-N_Gram_final$prediction
+save(Counts, Text,p4, file = "full_gram.rda")
+

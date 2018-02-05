@@ -1,0 +1,253 @@
+rm(list=ls())
+#dt_ngram<-data.table(0)
+library(plyr)
+#install.packages("ANLP")
+library(ANLP)
+library(tokenizers)
+library(slam)
+library(tm)
+library(devtools)
+library(tidytext)
+library(ggplot2)
+library(stringr)
+library(ngram)
+library(quanteda)
+#library(aggregate.table)
+library(data.table)
+library(tidyr)
+library(dplyr)
+
+
+
+##making corpus
+docs <- VCorpus(DirSource("D:/study/COURSERA/Capstone/final/en_US",encoding = "UTF-8"))
+
+
+## cleaning
+docs<- tm_map(docs,removePunctuation)
+#docs<- tm_map(docs,removeNumbers)
+
+noSpace <- content_transformer(function(x, pattern) {return (gsub(pattern,"",
+                                                                  x))})
+
+
+docs<- tm_map(docs,noSpace,"’")
+
+toSpace <- content_transformer(function(x, pattern) {return (gsub(pattern," ",
+                                                                  x))})
+
+docs<- tm_map(docs,toSpace,"[^a-zA-Z]")
+
+
+total_len<-length(docs[[3]][1]$content[])
+part<-(total_len-(total_len%%4))/4
+num<-part
+
+start<-1
+## load ngram
+start.time <- Sys.time()
+for (i in 1:4){
+  
+  num=part*i
+  print(num)
+  print(start)
+  
+  ngram_corpus<-tokenize_ngrams(as.character(docs[[3]][1]$content[start:num]), n = 4)
+  temp_dt_ngram<-data.table(unlist(ngram_corpus))
+  colnames(temp_dt_ngram)<-c("text")
+  setkey(temp_dt_ngram,text)
+  
+  
+  temp_dt_ngram_freq<-unique(temp_dt_ngram[ , count := .N, by = list(text)])
+  setkey(temp_dt_ngram_freq,text)
+  
+  
+  if (i == 1){
+    dt_ngram<-temp_dt_ngram_freq
+  }
+  if (i > 1){
+    dt_ngram<-rbind(dt_ngram,temp_dt_ngram_freq)
+  }
+  
+  
+  setkey(dt_ngram,text)
+  
+  print(i)
+
+  
+  start=num+1
+  
+  rm(ngram_corpus)
+  rm(temp_dt_ngram)
+  rm(temp_dt_ngram_freq)
+  
+}
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+time.taken
+
+dt_ngram<-dt_ngram[ , sum(count), by = list(text)]
+setkey(dt_ngram,text)
+
+
+## removing 1 record count
+dt_ngram<-dt_ngram[!(dt_ngram$V1==1),]
+
+## splitting
+dt_ngram_split<-dt_ngram[, c("P1", "P2", "P3","P4") := tstrsplit(text, " ", fixed=TRUE)]
+dt_ngram_split <-unite(dt_ngram_split,"3_word","P1", "P2", "P3",  sep=" ",remove = FALSE) 
+Gram_Tdm<-dt_ngram_split[,c("3_word","P4","V1")]
+setkey(Gram_Tdm,"3_word")
+
+
+# save the Orange data as vectors
+Counts<-Gram_Tdm$V1
+Text<-Gram_Tdm$`3_word`
+p4<-Gram_Tdm$P4
+save(Counts, Text,p4, file = "file3_gram_4.rda")
+
+
+list=ls()
+object.size(get(list[2]))
+
+## file 2
+
+total_len<-length(docs[[2]][1]$content[])
+part<-(total_len-(total_len%%4))/4
+num<-part
+
+start<-1
+## load ngram
+start.time <- Sys.time()
+for (i in 1:4){
+  
+  num=part*i
+  print(num)
+  print(start)
+  
+  ngram_corpus<-tokenize_ngrams(as.character(docs[[2]][1]$content[start:num]), n = 4)
+  temp_dt_ngram<-data.table(unlist(ngram_corpus))
+  colnames(temp_dt_ngram)<-c("text")
+  setkey(temp_dt_ngram,text)
+  
+  
+  temp_dt_ngram_freq<-unique(temp_dt_ngram[ , count := .N, by = list(text)])
+  setkey(temp_dt_ngram_freq,text)
+  
+  
+  if (i == 1){
+    dt_ngram<-temp_dt_ngram_freq
+  }
+  if (i > 1){
+    dt_ngram<-rbind(dt_ngram,temp_dt_ngram_freq)
+  }
+  
+  
+  setkey(dt_ngram,text)
+  
+  print(i)
+  
+  
+  start=num+1
+  
+  rm(ngram_corpus)
+  rm(temp_dt_ngram)
+  rm(temp_dt_ngram_freq)
+  
+}
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+time.taken
+
+dt_ngram<-dt_ngram[ , sum(count), by = list(text)]
+setkey(dt_ngram,text)
+
+
+## removing 1 record count
+dt_ngram<-dt_ngram[!(dt_ngram$V1==1),]
+
+## splitting
+dt_ngram_split<-dt_ngram[, c("P1", "P2", "P3","P4") := tstrsplit(text, " ", fixed=TRUE)]
+dt_ngram_split <-unite(dt_ngram_split,"3_word","P1", "P2", "P3",  sep=" ",remove = FALSE) 
+Gram_Tdm<-dt_ngram_split[,c("3_word","P4","V1")]
+setkey(Gram_Tdm,"3_word")
+
+rm(dt_ngram_split)
+
+
+# save the Orange data as vectors
+Counts<-Gram_Tdm$V1
+Text<-Gram_Tdm$`3_word`
+p4<-Gram_Tdm$P4
+save(Counts, Text,p4, file = "file2_gram_4.rda")
+
+## file 1
+
+total_len<-length(docs[[1]][1]$content[])
+part<-(total_len-(total_len%%4))/4
+num<-part
+
+start<-1
+## load ngram
+start.time <- Sys.time()
+for (i in 1:4){
+  
+  num=part*i
+  print(num)
+  print(start)
+  
+  ngram_corpus<-tokenize_ngrams(as.character(docs[[1]][1]$content[start:num]), n = 4)
+  temp_dt_ngram<-data.table(unlist(ngram_corpus))
+  colnames(temp_dt_ngram)<-c("text")
+  setkey(temp_dt_ngram,text)
+  
+  
+  temp_dt_ngram_freq<-unique(temp_dt_ngram[ , count := .N, by = list(text)])
+  setkey(temp_dt_ngram_freq,text)
+  
+  
+  if (i == 1){
+    dt_ngram<-temp_dt_ngram_freq
+  }
+  if (i > 1){
+    dt_ngram<-rbind(dt_ngram,temp_dt_ngram_freq)
+  }
+  
+  
+  setkey(dt_ngram,text)
+  
+  print(i)
+  
+  
+  start=num+1
+  
+  rm(ngram_corpus)
+  rm(temp_dt_ngram)
+  rm(temp_dt_ngram_freq)
+  
+}
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+time.taken
+
+dt_ngram<-dt_ngram[ , sum(count), by = list(text)]
+setkey(dt_ngram,text)
+
+
+## removing 1 record count
+dt_ngram<-dt_ngram[!(dt_ngram$V1==1),]
+
+## splitting
+dt_ngram_split<-dt_ngram[, c("P1", "P2", "P3","P4") := tstrsplit(text, " ", fixed=TRUE)]
+dt_ngram_split <-unite(dt_ngram_split,"3_word","P1", "P2", "P3",  sep=" ",remove = FALSE) 
+Gram_Tdm<-dt_ngram_split[,c("3_word","P4","V1")]
+setkey(Gram_Tdm,"3_word")
+
+
+# save the Orange data as vectors
+Counts<-Gram_Tdm$V1
+Text<-Gram_Tdm$`3_word`
+p4<-Gram_Tdm$P4
+save(Counts, Text,p4, file = "file1_gram_4.rda")
+
+
